@@ -1,6 +1,6 @@
 import styled, { keyframes } from "styled-components";
 import "./App.css";
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import Checkbox from "./Checkbox";
 
 const alphabet = [
@@ -74,12 +74,18 @@ const SpinningLetter = styled.span<{ letter: number; duration: number }>`
 `;
 
 function App() {
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const [hasSpinnerStarted, setHasSpinnerStarted] = useState(false);
-  const [entrantsList, setEntrantsList] = useState<string[]>([]);
-  const [selectedEntrants, setSelectedEntrants] = useState<string[]>([]);
   const [inputName, setInputName] = useState("");
   const [isError, setIsError] = useState(false);
   const [winningName, setWinningName] = useState("");
+
+  const entrantsList: string[] = JSON.parse(
+    localStorage.getItem("entrantsList") || "[]"
+  );
+  const selectedEntrants: string[] = JSON.parse(
+    localStorage.getItem("selectedEntrants") || "[]"
+  );
 
   const longestName = entrantsList.reduce((acc, entrant) => {
     return entrant.length > acc.length ? entrant : acc;
@@ -154,8 +160,14 @@ function App() {
               if (entrantsList.includes(inputName)) {
                 setIsError(true);
               } else if (inputName) {
-                setEntrantsList([...entrantsList, inputName]);
-                setSelectedEntrants([...selectedEntrants, inputName]);
+                localStorage.setItem(
+                  "entrantsList",
+                  JSON.stringify([...entrantsList, inputName])
+                );
+                localStorage.setItem(
+                  "selectedEntrants",
+                  JSON.stringify([...selectedEntrants, inputName])
+                );
                 setInputName("");
                 setIsError(false);
               }
@@ -173,15 +185,22 @@ function App() {
                 checked={selectedEntrants.includes(entrant)}
                 onClick={(event) => {
                   if (event.target.checked) {
-                    setSelectedEntrants([
-                      ...selectedEntrants,
-                      event.target.value,
-                    ]);
+                    localStorage.setItem(
+                      "selectedEntrants",
+                      JSON.stringify([...selectedEntrants, event.target.value])
+                    );
                   } else {
-                    setSelectedEntrants(
-                      selectedEntrants.filter((id) => id !== event.target.value)
+                    localStorage.setItem(
+                      "selectedEntrants",
+                      JSON.stringify(
+                        selectedEntrants.filter(
+                          (id) => id !== event.target.value
+                        )
+                      )
                     );
                   }
+
+                  forceUpdate();
                 }}
               />
             </li>
