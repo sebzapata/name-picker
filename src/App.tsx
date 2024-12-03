@@ -148,7 +148,22 @@ function App() {
       <div className="flex flex-col border border-b-neutral-500 w-full min-h-48 p-4">
         <h2 className="text-2xl mb-4">Select the entrants</h2>
 
-        <div className="flex mb-4 items-start">
+        <form
+          className="flex mb-4 items-start"
+          onSubmit={(e) => {
+            e.preventDefault();
+
+            if (entrantsList.includes(inputName)) {
+              setIsError(true);
+            } else if (inputName) {
+              setEntrantsList([...entrantsList, inputName]);
+              setSelectedEntrants([...selectedEntrants, inputName]);
+
+              setInputName("");
+              setIsError(false);
+            }
+          }}
+        >
           <div className="flex flex-col w-9/12 mr-4 items-start">
             <input
               placeholder="Please enter a name"
@@ -164,21 +179,10 @@ function App() {
           <button
             disabled={hasSpinnerStarted}
             className="h-9 flex flex-grow leading-4 text-base justify-center"
-            onClick={() => {
-              if (entrantsList.includes(inputName)) {
-                setIsError(true);
-              } else if (inputName) {
-                setEntrantsList([...entrantsList, inputName]);
-                setSelectedEntrants([...selectedEntrants, inputName]);
-
-                setInputName("");
-                setIsError(false);
-              }
-            }}
           >
             Add entrant
           </button>
-        </div>
+        </form>
 
         <ul className="columns-3">
           {entrantsList.map((entrant) => (
