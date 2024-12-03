@@ -1,7 +1,7 @@
 import styled, { keyframes } from "styled-components";
 import "./App.css";
 import { useEffect, useState } from "react";
-import Checkbox from "./Checkbox";
+import Checkbox from "./checkbox.tsx";
 
 const alphabet = [
   "-",
