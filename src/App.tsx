@@ -128,13 +128,17 @@ function App() {
 
         <div
           role="button"
-          className="w-1/3 bg-blue-200 h-12 rounded-md ml-auto mr-auto leading-[48px] font-bold"
+          className={`w-1/3 bg-blue-200 h-12 rounded-md ml-auto mr-auto leading-[48px] font-bold ${
+            hasSpinnerStarted ? "cursor-default opacity-50" : "cursor-pointer"
+          }`}
           onClick={() => {
-            const randomNumber = Math.floor(
-              Math.random() * selectedEntrants.length
-            );
-            setWinningName(selectedEntrants[randomNumber]);
-            setHasSpinnerStarted(true);
+            if (!hasSpinnerStarted) {
+              const randomNumber = Math.floor(
+                Math.random() * selectedEntrants.length
+              );
+              setWinningName(selectedEntrants[randomNumber]);
+              setHasSpinnerStarted(true);
+            }
           }}
         >
           Spin the wheel!
@@ -158,6 +162,7 @@ function App() {
           </div>
 
           <button
+            disabled={hasSpinnerStarted}
             className="h-9 flex flex-grow leading-4 text-base justify-center"
             onClick={() => {
               if (entrantsList.includes(inputName)) {
@@ -188,12 +193,16 @@ function App() {
                       event.target.value,
                     ]);
                   } else {
-                    console.log("click", event.target.value);
-
                     setSelectedEntrants(
                       selectedEntrants.filter((id) => id !== event.target.value)
                     );
                   }
+                }}
+                removeEntrant={() => {
+                  setEntrantsList(entrantsList.filter((id) => id !== entrant));
+                  setSelectedEntrants(
+                    selectedEntrants.filter((id) => id !== entrant)
+                  );
                 }}
               />
             </li>
