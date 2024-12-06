@@ -129,10 +129,12 @@ function App() {
         <div
           role="button"
           className={`w-1/3 bg-blue-200 h-12 rounded-md ml-auto mr-auto leading-[48px] font-bold ${
-            hasSpinnerStarted ? "cursor-default opacity-50" : "cursor-pointer"
+            hasSpinnerStarted || !entrantsList.length
+              ? "cursor-default opacity-50"
+              : "cursor-pointer"
           }`}
           onClick={() => {
-            if (!hasSpinnerStarted) {
+            if (!hasSpinnerStarted && entrantsList.length) {
               const randomNumber = Math.floor(
                 Math.random() * selectedEntrants.length
               );
