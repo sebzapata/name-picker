@@ -1,6 +1,6 @@
 import styled, { keyframes } from "styled-components";
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Checkbox from "./checkbox.tsx";
 
 const alphabet = [
@@ -64,10 +64,10 @@ const scrollAnimation = keyframes`
   }
 `;
 
-const SpinningLetter = styled.span<{ letter: number; duration: number }>`
+const SpinningLetter = styled.span<{ letter: number }>`
   --ch: -${(props) => props.letter};
   animation-name: ${scrollAnimation};
-  animation-delay: 0.25s;
+  animation-delay: 0.5s;
   animation-duration: 7.5s;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
@@ -81,14 +81,25 @@ function App() {
     JSON.parse(localStorage.getItem("selectedEntrants") || "[]")
   );
   const [hasSpinnerStarted, setHasSpinnerStarted] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const [inputName, setInputName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [winningName, setWinningName] = useState("");
+
+  const animationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     localStorage.setItem("entrantsList", JSON.stringify(entrantsList));
     localStorage.setItem("selectedEntrants", JSON.stringify(selectedEntrants));
   }, [entrantsList, selectedEntrants]);
+
+  useEffect(() => {
+    if (animationRef.current) {
+      animationRef.current.addEventListener("animationend", () => {
+        setIsSpinning(false);
+      });
+    }
+  }, []);
 
   const longestName = entrantsList.reduce((acc, entrant) => {
     return entrant.length > acc.length ? entrant : acc;
@@ -102,21 +113,25 @@ function App() {
             return (
               <div
                 className={`flex flex-col bg-pink-200 text-[90px] h-[100px] w-[75px] leading-[100px] text-center overflow-hidden border border-black`}
+                ref={animationRef}
               >
                 {alphabet.map((letter) => {
                   const letterIndex = alphabet.indexOf(
                     winningName.toUpperCase().split("")[hIndex]
                   );
 
-                  if (hasSpinnerStarted) {
+                  if (hasSpinnerStarted && isSpinning) {
                     return (
                       <SpinningLetter
                         letter={hIndex < winningName.length ? letterIndex : 27}
-                        duration={hIndex + 1}
                       >
                         {hIndex === 0 ? letter : letter.toLowerCase()}
                       </SpinningLetter>
                     );
+                  }
+
+                  if (hasSpinnerStarted && !isSpinning) {
+                    return <span>{winningName.split("")[hIndex] || "-"}</span>;
                   }
 
                   return <span>-</span>;
@@ -129,17 +144,18 @@ function App() {
         <div
           role="button"
           className={`w-1/3 bg-blue-200 h-12 rounded-md ml-auto mr-auto leading-[48px] font-bold ${
-            hasSpinnerStarted || !entrantsList.length
+            isSpinning || !entrantsList.length
               ? "cursor-default opacity-50"
               : "cursor-pointer"
           }`}
           onClick={() => {
-            if (!hasSpinnerStarted && entrantsList.length) {
+            if (!isSpinning && entrantsList.length) {
               const randomNumber = Math.floor(
                 Math.random() * selectedEntrants.length
               );
               setWinningName(selectedEntrants[randomNumber]);
               setHasSpinnerStarted(true);
+              setIsSpinning(true);
             }
           }}
         >
