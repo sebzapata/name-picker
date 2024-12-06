@@ -82,7 +82,7 @@ function App() {
   );
   const [hasSpinnerStarted, setHasSpinnerStarted] = useState(false);
   const [inputName, setInputName] = useState("");
-  const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [winningName, setWinningName] = useState("");
 
   useEffect(() => {
@@ -156,13 +156,17 @@ function App() {
             e.preventDefault();
 
             if (entrantsList.includes(inputName)) {
-              setIsError(true);
+              setErrorMessage("Name already exists in list!");
+            } else if (inputName.length > 15) {
+              setErrorMessage(
+                "Can't have any names longer than 15 characters!"
+              );
             } else if (inputName) {
               setEntrantsList([...entrantsList, inputName]);
               setSelectedEntrants([...selectedEntrants, inputName]);
 
               setInputName("");
-              setIsError(false);
+              setErrorMessage("");
             }
           }}
         >
@@ -173,8 +177,8 @@ function App() {
               onChange={(e) => setInputName(e.target.value)}
               className="border h-9 w-full mb-1 p-4"
             />
-            {isError && (
-              <span className="text-red-600">Name already exists in list!</span>
+            {errorMessage && (
+              <span className="text-red-600">{errorMessage}</span>
             )}
           </div>
 
