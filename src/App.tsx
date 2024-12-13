@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Checkbox from "./checkbox.tsx";
 
 const alphabet = [
+  " ",
   "-",
   "A",
   "B",
@@ -31,32 +32,23 @@ const alphabet = [
   "X",
   "Y",
   "Z",
-  " ",
 ];
 
-const scrollAnimation = keyframes`  
+const scrollAnimation = (endValue: number) => keyframes`  
   0% {
     transform: translateY(calc(0 * 100%));
   }
 
-  10% {
-    transform: translateY(calc(-26 * 100%));
+  25% {
+    transform: translateY(calc(-${endValue} * 100%));
   }
 
-  20% {
-    transform: translateY(calc(0 * 100%));
-  }
-
-  30% {
-    transform: translateY(calc(-26 * 100%));
-  }
-
-  40% {
+  50% {
     transform: translateY(calc(0 * 100%));
   }
 
   75% {
-    transform: translateY(calc(-26 * 100%));
+    transform: translateY(calc(-${endValue} * 100%));
   }
 
   100% {
@@ -64,9 +56,9 @@ const scrollAnimation = keyframes`
   }
 `;
 
-const SpinningLetter = styled.span<{ letter: number }>`
+const SpinningLetter = styled.span<{ letter: number; arrayLength: number }>`
   --ch: -${(props) => props.letter};
-  animation-name: ${scrollAnimation};
+  animation-name: ${(props) => scrollAnimation(props.arrayLength)};
   animation-delay: 0.5s;
   animation-duration: 7.5s;
   animation-timing-function: linear;
@@ -85,6 +77,9 @@ function App() {
   const [inputName, setInputName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [winningName, setWinningName] = useState("");
+  const [allLettersInNames, setAllLettersInNames] = useState<string[]>([
+    ...alphabet,
+  ]);
 
   const animationRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +96,26 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const allLettersFromEntrantsList = selectedEntrants
+      .join("")
+      .toUpperCase()
+      .split("");
+
+    const allOfTheLetters = allLettersFromEntrantsList.reduce(
+      (acc, letter) => {
+        if (acc.includes(letter)) {
+          return acc;
+        }
+
+        return [...acc, letter];
+      },
+      [...allLettersInNames]
+    );
+
+    setAllLettersInNames(allOfTheLetters);
+  }, [allLettersInNames, selectedEntrants, entrantsList]);
+
   const longestName = entrantsList.reduce((acc, entrant) => {
     return entrant.length > acc.length ? entrant : acc;
   }, "0123456789");
@@ -115,15 +130,20 @@ function App() {
                 className={`flex flex-col bg-pink-200 text-[90px] h-[100px] w-[75px] leading-[100px] text-center overflow-hidden border border-black`}
                 ref={animationRef}
               >
-                {alphabet.map((letter) => {
-                  const letterIndex = alphabet.indexOf(
+                {allLettersInNames.map((letter) => {
+                  const letterIndex = allLettersInNames.indexOf(
                     winningName.toUpperCase().split("")[hIndex]
                   );
 
                   if (hasSpinnerStarted && isSpinning) {
                     return (
                       <SpinningLetter
-                        letter={hIndex < winningName.length ? letterIndex : 27}
+                        letter={
+                          hIndex < winningName.length
+                            ? letterIndex
+                            : allLettersInNames.indexOf("")
+                        }
+                        arrayLength={allLettersInNames.length - 2}
                       >
                         {hIndex === 0 ? letter : letter.toLowerCase()}
                       </SpinningLetter>
@@ -131,7 +151,7 @@ function App() {
                   }
 
                   if (hasSpinnerStarted && !isSpinning) {
-                    return <span>{winningName.split("")[hIndex] || "-"}</span>;
+                    return <span>{winningName.split("")[hIndex] || ""}</span>;
                   }
 
                   return <span>-</span>;
@@ -144,12 +164,12 @@ function App() {
         <div
           role="button"
           className={`w-1/3 bg-blue-200 h-12 rounded-md ml-auto mr-auto leading-[48px] font-bold ${
-            isSpinning || !entrantsList.length
+            isSpinning || !selectedEntrants.length
               ? "cursor-default opacity-50"
               : "cursor-pointer"
           }`}
           onClick={() => {
-            if (!isSpinning && entrantsList.length) {
+            if (!isSpinning && selectedEntrants.length) {
               const randomNumber = Math.floor(
                 Math.random() * selectedEntrants.length
               );
@@ -198,10 +218,7 @@ function App() {
             )}
           </div>
 
-          <button
-            disabled={hasSpinnerStarted}
-            className="h-9 flex flex-grow leading-4 text-base justify-center"
-          >
+          <button className="h-9 flex flex-grow leading-4 text-base justify-center">
             Add entrant
           </button>
         </form>
